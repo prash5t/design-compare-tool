@@ -5,20 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Design Comparison Tool</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <h1>Design Comparison Tool</h1>
         <form id="upload-form" enctype="multipart/form-data">
-            <div class="input-group">
-                <label for="figma-image">Figma Design:</label>
-                <input type="file" id="figma-image" name="figma_image" accept="image/*" required>
+            <div class="upload-container">
+                <div class="drop-area" id="figma-drop-area">
+                    <p>Drag & Drop or Click to Upload Figma Design</p>
+                    <input type="file" id="figma-image" name="figma_image" accept="image/*">
+                </div>
+                <div class="drop-area" id="built-drop-area">
+                    <p>Drag & Drop or Click to Upload Built Screen</p>
+                    <input type="file" id="built-image" name="built_image" accept="image/*">
+                </div>
             </div>
-            <div class="input-group">
-                <label for="built-image">Built Screen:</label>
-                <input type="file" id="built-image" name="built_image" accept="image/*" required>
-            </div>
-            <button type="submit" class="neumorphic-btn">Compare</button>
+            <button type="submit" class="neon-btn" id="compare-btn" disabled>Compare</button>
         </form>
         <div id="result" class="result"></div>
     </div>

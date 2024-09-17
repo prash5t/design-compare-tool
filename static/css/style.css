@@ -1,70 +1,122 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #e0e5ec;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+    font-family: 'Share Tech Mono', monospace;
+    line-height: 1.6;
     margin: 0;
+    padding: 0;
+    background-color: #0a0a0a;
+    color: #00ff00;
+    background-image: 
+        linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
 }
 
 .container {
-    background-color: #e0e5ec;
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 10px 10px 20px #b8bec5, -10px -10px 20px #ffffff;
+    width: 90%;
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
 }
 
 h1 {
     text-align: center;
-    color: #333;
+    color: #00ff00;
+    text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00;
+    font-size: 2.5em;
+    margin-bottom: 30px;
 }
 
-.input-group {
+.upload-container {
+    display: flex;
+    justify-content: space-between;
     margin-bottom: 20px;
 }
 
-label {
-    display: block;
-    margin-bottom: 5px;
-    color: #333;
-}
-
-input[type="file"] {
-    width: 100%;
-    padding: 10px;
-    border: none;
-    background-color: #e0e5ec;
+.drop-area {
+    width: 48%;
+    height: 200px;
+    border: 2px solid #00ff00;
     border-radius: 10px;
-    box-shadow: inset 5px 5px 10px #b8bec5, inset -5px -5px 10px #ffffff;
-}
-
-.neumorphic-btn {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    background-color: #e0e5ec;
-    border: none;
-    border-radius: 10px;
-    color: #333;
-    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    box-shadow: 5px 5px 10px #b8bec5, -5px -5px 10px #ffffff;
     transition: all 0.3s ease;
+    background-color: rgba(0, 255, 0, 0.05);
+    backdrop-filter: blur(5px);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
 }
 
-.neumorphic-btn:hover {
-    box-shadow: 2px 2px 5px #b8bec5, -2px -2px 5px #ffffff;
+.drop-area:hover, .drop-area.dragover {
+    background-color: rgba(0, 255, 0, 0.1);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
 }
 
-.neumorphic-btn:active {
-    box-shadow: inset 2px 2px 5px #b8bec5, inset -2px -2px 5px #ffffff;
+.drop-area p {
+    text-align: center;
+    color: #00ff00;
+    font-size: 1.2em;
+}
+
+.drop-area input[type="file"] {
+    display: none;
+}
+
+.preview-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 5px;
+}
+
+.neon-btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    background-color: transparent;
+    border: 2px solid #00ff00;
+    border-radius: 5px;
+    color: #00ff00;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 5px #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    font-family: 'Share Tech Mono', monospace;
+}
+
+.neon-btn:hover {
+    background-color: rgba(0, 255, 0, 0.1);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+}
+
+.neon-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .result {
     margin-top: 20px;
-    padding: 20px;
-    background-color: #e0e5ec;
+    background-color: rgba(0, 255, 0, 0.05);
     border-radius: 10px;
-    box-shadow: inset 5px 5px 10px #b8bec5, inset -5px -5px 10px #ffffff;
+    padding: 20px;
+    backdrop-filter: blur(5px);
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.result img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.result h2 {
+    color: #00ff00;
+    text-shadow: 0 0 5px #00ff00;
+}
+
+.result p {
+    margin-bottom: 10px;
 }

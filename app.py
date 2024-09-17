@@ -4,16 +4,14 @@ import os
 from PIL import Image
 import cv2
 import numpy as np
+from skimage.metrics import structural_similarity as ssim
+from flask_cors import CORS  # Add this import
 
 app = Flask(__name__)
+CORS(app)  # Add this line to enable CORS
 
 # Configuration
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg'}
-
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads')
 
 
 @app.route('/')
@@ -23,53 +21,106 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_files():
+    print("Files received:", request.files)
+    print("Form data:", request.form)
+
     if 'figma_image' not in request.files or 'built_image' not in request.files:
-        return jsonify({'error': 'Both images are required'}), 400
+        missing = []
+        if 'figma_image' not in request.files:
+            missing.append('figma_image')
+        if 'built_image' not in request.files:
+            missing.append('built_image')
+        return jsonify({'error': f'Missing files: {", ".join(missing)}'}), 400
 
     figma_image = request.files['figma_image']
     built_image = request.files['built_image']
 
+    print("Figma image:", figma_image.filename)
+    print("Built image:", built_image.filename)
+
     if figma_image.filename == '' or built_image.filename == '':
-        return jsonify({'error': 'Both images are required'}), 400
+        empty = []
+        if figma_image.filename == '':
+            empty.append('figma_image')
+        if built_image.filename == '':
+            empty.append('built_image')
+        return jsonify({'error': f'Empty filenames: {", ".join(empty)}'}), 400
 
-    if figma_image and allowed_file(figma_image.filename) and built_image and allowed_file(built_image.filename):
-        figma_filename = secure_filename(figma_image.filename)
-        built_filename = secure_filename(built_image.filename)
+    # Remove the allowed_file check as it's not defined
+    figma_filename = secure_filename(figma_image.filename)
+    built_filename = secure_filename(built_image.filename)
 
-        figma_path = os.path.join(app.config['UPLOAD_FOLDER'], figma_filename)
-        built_path = os.path.join(app.config['UPLOAD_FOLDER'], built_filename)
+    figma_path = os.path.join(app.config['UPLOAD_FOLDER'], figma_filename)
+    built_path = os.path.join(app.config['UPLOAD_FOLDER'], built_filename)
 
-        figma_image.save(figma_path)
-        built_image.save(built_path)
+    # Ensure the upload folder exists
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-        # Perform image comparison
-        comparison_result = compare_images(figma_path, built_path)
+    figma_image.save(figma_path)
+    built_image.save(built_path)
 
-        return jsonify(comparison_result)
+    # Perform image comparison
+    comparison_result = compare_images(figma_path, built_path)
 
-    return jsonify({'error': 'Invalid file format'}), 400
+    return jsonify({
+        'similarity': comparison_result['similarity'],
+        'message': comparison_result['message'],
+        'comparison_image': comparison_result['comparison_image']
+    })
 
 
 def compare_images(figma_path, built_path):
-    # Implement image comparison logic here
-    # This is a placeholder function, you'll need to implement the actual comparison
+    # Read images
     figma_img = cv2.imread(figma_path)
     built_img = cv2.imread(built_path)
 
-    # Example: Compare color histograms
-    figma_hist = cv2.calcHist([figma_img], [0, 1, 2], None, [
-                              8, 8, 8], [0, 256, 0, 256, 0, 256])
-    built_hist = cv2.calcHist([built_img], [0, 1, 2], None, [
-                              8, 8, 8], [0, 256, 0, 256, 0, 256])
+    # Ensure images are the same size
+    figma_img = cv2.resize(figma_img, (built_img.shape[1], built_img.shape[0]))
 
-    similarity = cv2.compareHist(figma_hist, built_hist, cv2.HISTCMP_CORREL)
+    # Convert images to grayscale
+    figma_gray = cv2.cvtColor(figma_img, cv2.COLOR_BGR2GRAY)
+    built_gray = cv2.cvtColor(built_img, cv2.COLOR_BGR2GRAY)
+
+    # Compute SSIM between the two images
+    (score, diff) = ssim(figma_gray, built_gray, full=True)
+
+    # The diff image contains the actual image differences
+    diff = (diff * 255).astype("uint8")
+
+    # Threshold the difference image, followed by finding contours
+    thresh = cv2.threshold(
+        diff, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+    contours = cv2.findContours(
+        thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours = contours[0] if len(contours) == 2 else contours[1]
+
+    # Create a mask image that we will use to visualize the differences
+    mask = np.zeros(figma_img.shape, dtype='uint8')
+    filled_after = figma_img.copy()
+
+    for c in contours:
+        area = cv2.contourArea(c)
+        if area > 40:
+            x, y, w, h = cv2.boundingRect(c)
+            cv2.rectangle(figma_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.rectangle(built_img, (x, y), (x + w, y + h), (0, 0, 255), 2)
+            cv2.drawContours(mask, [c], 0, (0, 255, 0), -1)
+            cv2.drawContours(filled_after, [c], 0, (0, 0, 255), -1)
+
+    # Create the comparison image
+    comparison = np.hstack((figma_img, built_img, filled_after))
+
+    # Save the comparison image
+    comparison_path = os.path.join(
+        app.config['UPLOAD_FOLDER'], 'comparison.jpg')
+    cv2.imwrite(comparison_path, comparison)
 
     return {
-        'similarity': similarity,
-        'message': f'The images are {similarity * 100:.2f}% similar based on color histograms.'
+        'similarity': score * 100,
+        'message': f'The images are {score * 100:.2f}% similar based on structural similarity.',
+        'comparison_image': 'comparison.jpg'
     }
 
 
 if __name__ == '__main__':
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     app.run(debug=True)

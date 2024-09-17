@@ -137,3 +137,22 @@ h1 {
     color: #f0f0f0;
     text-shadow: 0.5px 0.5px #4ecdc4;
 }
+
+.result a {
+    color: #ffa500;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.result a:hover {
+    color: #ff6b6b;
+    text-shadow: 0 0 5px rgba(255, 107, 107, 0.7);
+}
+
+.result .similarity {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ffa500;
+    text-shadow: 1px 1px #ff6b6b;
+}

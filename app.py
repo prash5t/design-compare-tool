@@ -6,6 +6,8 @@ import cv2
 import numpy as np
 from skimage.metrics import structural_similarity as ssim
 from flask_cors import CORS  # Add this import
+import uuid  # Add this import
+from datetime import datetime  # Add this import at the top of the file
 
 app = Flask(__name__)
 CORS(app)  # Add this line to enable CORS
@@ -21,52 +23,52 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_files():
-    print("Files received:", request.files)
-    print("Form data:", request.form)
+    try:
+        print("Request method:", request.method)
+        print("Content-Type:", request.content_type)
+        print("Files received:", request.files)
+        print("Form data:", request.form)
 
-    if 'figma_image' not in request.files or 'built_image' not in request.files:
-        missing = []
-        if 'figma_image' not in request.files:
-            missing.append('figma_image')
-        if 'built_image' not in request.files:
-            missing.append('built_image')
-        return jsonify({'error': f'Missing files: {", ".join(missing)}'}), 400
+        if 'figma_image' not in request.files or 'built_image' not in request.files:
+            missing = []
+            if 'figma_image' not in request.files:
+                missing.append('figma_image')
+            if 'built_image' not in request.files:
+                missing.append('built_image')
+            return jsonify({'error': f'Missing files: {", ".join(missing)}'}), 400
 
-    figma_image = request.files['figma_image']
-    built_image = request.files['built_image']
+        figma_image = request.files['figma_image']
+        built_image = request.files['built_image']
 
-    print("Figma image:", figma_image.filename)
-    print("Built image:", built_image.filename)
+        print("Figma image:", figma_image.filename)
+        print("Built image:", built_image.filename)
 
-    if figma_image.filename == '' or built_image.filename == '':
-        empty = []
-        if figma_image.filename == '':
-            empty.append('figma_image')
-        if built_image.filename == '':
-            empty.append('built_image')
-        return jsonify({'error': f'Empty filenames: {", ".join(empty)}'}), 400
+        if figma_image.filename == '' or built_image.filename == '':
+            empty = []
+            if figma_image.filename == '':
+                empty.append('figma_image')
+            if built_image.filename == '':
+                empty.append('built_image')
+            return jsonify({'error': f'Empty filenames: {", ".join(empty)}'}), 400
 
-    # Remove the allowed_file check as it's not defined
-    figma_filename = secure_filename(figma_image.filename)
-    built_filename = secure_filename(built_image.filename)
+        figma_filename = secure_filename(figma_image.filename)
+        built_filename = secure_filename(built_image.filename)
 
-    figma_path = os.path.join(app.config['UPLOAD_FOLDER'], figma_filename)
-    built_path = os.path.join(app.config['UPLOAD_FOLDER'], built_filename)
+        figma_path = os.path.join(app.config['UPLOAD_FOLDER'], figma_filename)
+        built_path = os.path.join(app.config['UPLOAD_FOLDER'], built_filename)
 
-    # Ensure the upload folder exists
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-    figma_image.save(figma_path)
-    built_image.save(built_path)
+        figma_image.save(figma_path)
+        built_image.save(built_path)
 
-    # Perform image comparison
-    comparison_result = compare_images(figma_path, built_path)
+        comparison_result = compare_images(figma_path, built_path)
 
-    return jsonify({
-        'similarity': comparison_result['similarity'],
-        'message': comparison_result['message'],
-        'comparison_image': comparison_result['comparison_image']
-    })
+        return jsonify(comparison_result)
+
+    except Exception as e:
+        print("Error occurred:", str(e))
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/uploads/<filename>')
@@ -115,14 +117,15 @@ def compare_images(figma_path, built_path):
     # Create the comparison image
     comparison = np.hstack((figma_img, built_img, filled_after))
 
-    # Save the comparison image
-    comparison_filename = f'comparison_{os.path.basename(figma_path)}_{os.path.basename(built_path)}.jpg'
+    # Generate a unique filename for the comparison image using datetime
+    now = datetime.now()
+    comparison_filename = f'comparison_{now.strftime("%Y%m%d_%H%M%S")}.jpg'
     comparison_path = os.path.join(
         app.config['UPLOAD_FOLDER'], comparison_filename)
     cv2.imwrite(comparison_path, comparison)
 
     return {
-        'similarity': score * 100,
+        'similarity': f'{score * 100:.2f}',
         'message': f'The images are {score * 100:.2f}% similar based on structural similarity.',
         'comparison_image': comparison_filename
     }

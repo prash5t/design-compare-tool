@@ -77,23 +77,44 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", function (e) {
     e.preventDefault();
 
-    var formData = new FormData(this);
+    var formData = new FormData();
+
+    // Ensure files are added to FormData
+    if (figmaInput.files.length > 0) {
+      formData.append("figma_image", figmaInput.files[0]);
+    }
+    if (builtInput.files.length > 0) {
+      formData.append("built_image", builtInput.files[0]);
+    }
+
+    // Log the form data
+    for (var pair of formData.entries()) {
+      console.log(pair[0] + ": " + pair[1]);
+    }
 
     fetch("/upload", {
       method: "POST",
       body: formData,
     })
-      .then((response) => response.json())
+      .then((response) => {
+        console.log("Response status:", response.status);
+        console.log("Response headers:", response.headers);
+        return response.json();
+      })
       .then((data) => {
-        var resultDiv = document.getElementById("result");
+        if (data.error) {
+          throw new Error(data.error);
+        }
         resultDiv.innerHTML = `
-        <h2>Comparison Result</h2>
-        <p>${data.message}</p>
-        <img src="/uploads/${data.comparison_image}" alt="Comparison Image">
-      `;
+          <h2>Comparison Result</h2>
+          <p class="similarity">Similarity: ${data.similarity}%</p>
+          <p>${data.message}</p>
+          <p><a href="/uploads/${data.comparison_image}" target="_blank">Click here to view the comparison image</a></p>
+        `;
       })
       .catch((error) => {
         console.error("Error:", error);
+        resultDiv.innerHTML = `<p>An error occurred: ${error.message}</p>`;
       });
   });
 });

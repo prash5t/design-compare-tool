@@ -1,6 +1,11 @@
 # Design Comparison Tool
 
-This web application compares a Figma design screenshot with a screenshot of the built screen, focusing on UI components such as text colors, buttons, and other similar elements. The tool is built using Flask and Python, with a neumorphic design for the user interface.
+Compares a Figma design screenshot with a screenshot of the built screen, focusing on UI components such as text colors, buttons, and other similar elements. The tool is built using Flask and Python, with a neumorphic design for the user interface.
+
+Screenshots:
+
+![Figma Design](demo/1.png)
+![Built Screen](demo/compared.png)
 
 ## Features
 

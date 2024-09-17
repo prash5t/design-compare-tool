@@ -109,10 +109,21 @@ def compare_images(figma_path, built_path):
         area = cv2.contourArea(c)
         if area > 40:
             x, y, w, h = cv2.boundingRect(c)
-            cv2.rectangle(figma_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.rectangle(built_img, (x, y), (x + w, y + h), (0, 0, 255), 2)
-            cv2.drawContours(mask, [c], 0, (0, 255, 0), -1)
-            cv2.drawContours(filled_after, [c], 0, (0, 0, 255), -1)
+            figma_img = cv2.rectangle(
+                figma_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            built_img = cv2.rectangle(
+                built_img, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+            # Compare the region in both images
+            figma_region = figma_gray[y:y+h, x:x+w]
+            built_region = built_gray[y:y+h, x:x+w]
+
+            if np.mean(figma_region) > np.mean(built_region):
+                # More white in Figma, use green
+                cv2.drawContours(filled_after, [c], 0, (0, 255, 0), -1)
+            else:
+                # More white in built, use red
+                cv2.drawContours(filled_after, [c], 0, (0, 0, 255), -1)
 
     # Create the comparison image
     comparison = np.hstack((figma_img, built_img, filled_after))

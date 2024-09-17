@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Design Comparison Tool</title>
+    <title>Vice City Design Heist</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1>Design Comparison Tool</h1>
+    <div class="container neon-glow">
+        <h1 class="title-text">Design Comparision Tool</h1>
         <form id="upload-form" enctype="multipart/form-data">
             <div class="upload-container">
-                <div class="drop-area" id="figma-drop-area">
-                    <p>Drag & Drop or Click to Upload Figma Design</p>
+                <div class="drop-area neon-border" id="figma-drop-area">
+                    <p>Upload Figma Design</p>
                     <input type="file" id="figma-image" name="figma_image" accept="image/*">
                 </div>
-                <div class="drop-area" id="built-drop-area">
-                    <p>Drag & Drop or Click to Upload Built Screen</p>
+                <div class="drop-area neon-border" id="built-drop-area">
+                    <p>Upload Built Screen</p>
                     <input type="file" id="built-image" name="built_image" accept="image/*">
                 </div>
             </div>

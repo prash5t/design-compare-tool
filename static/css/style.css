@@ -43,7 +43,7 @@ h1 {
 
 .drop-area {
     width: 48%;
-    height: 200px;
+    height: 250px; /* Increased from 200px to 250px */
     border: 3px solid #4ecdc4;
     border-radius: 10px;
     display: flex;
@@ -74,7 +74,7 @@ h1 {
 
 .preview-image {
     max-width: 100%;
-    max-height: 100%;
+    max-height: 230px; /* Adjusted to fit within the taller drop area */
     object-fit: contain;
     border-radius: 5px;
 }

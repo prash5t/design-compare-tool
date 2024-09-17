@@ -1,0 +1,61 @@
+# Ignore uploads directory
+uploads/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+myenv/
+
+# Virtual Environment
+venv/
+env/
+.env
+
+# Flask
+instance/
+.webassets-cache
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Database
+*.db
+*.sqlite3
+
+# Compiled source
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Node modules (if you decide to use any JavaScript packages)
+node_modules/

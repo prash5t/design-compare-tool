@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Comparison Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Design Comparison Tool</h1>
+        <form id="upload-form" enctype="multipart/form-data">
+            <div class="input-group">
+                <label for="figma-image">Figma Design:</label>
+                <input type="file" id="figma-image" name="figma_image" accept="image/*" required>
+            </div>
+            <div class="input-group">
+                <label for="built-image">Built Screen:</label>
+                <input type="file" id="built-image" name="built_image" accept="image/*" required>
+            </div>
+            <button type="submit" class="neumorphic-btn">Compare</button>
+        </form>
+        <div id="result" class="result"></div>
+    </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

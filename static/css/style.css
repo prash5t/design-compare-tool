@@ -1,0 +1,70 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #e0e5ec;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background-color: #e0e5ec;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 10px 10px 20px #b8bec5, -10px -10px 20px #ffffff;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    background-color: #e0e5ec;
+    border-radius: 10px;
+    box-shadow: inset 5px 5px 10px #b8bec5, inset -5px -5px 10px #ffffff;
+}
+
+.neumorphic-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #e0e5ec;
+    border: none;
+    border-radius: 10px;
+    color: #333;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 5px 5px 10px #b8bec5, -5px -5px 10px #ffffff;
+    transition: all 0.3s ease;
+}
+
+.neumorphic-btn:hover {
+    box-shadow: 2px 2px 5px #b8bec5, -2px -2px 5px #ffffff;
+}
+
+.neumorphic-btn:active {
+    box-shadow: inset 2px 2px 5px #b8bec5, inset -2px -2px 5px #ffffff;
+}
+
+.result {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #e0e5ec;
+    border-radius: 10px;
+    box-shadow: inset 5px 5px 10px #b8bec5, inset -5px -5px 10px #ffffff;
+}

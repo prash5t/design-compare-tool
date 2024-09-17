@@ -74,43 +74,26 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  form.addEventListener("submit", async (e) => {
+  form.addEventListener("submit", function (e) {
     e.preventDefault();
-    const formData = new FormData();
 
-    // Manually append files to FormData
-    if (figmaInput.files.length > 0) {
-      formData.append("figma_image", figmaInput.files[0]);
-    }
-    if (builtInput.files.length > 0) {
-      formData.append("built_image", builtInput.files[0]);
-    }
+    var formData = new FormData(this);
 
-    // Log the FormData contents
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-
-    try {
-      const response = await fetch("/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
+    fetch("/upload", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        var resultDiv = document.getElementById("result");
         resultDiv.innerHTML = `
-          <h2>Comparison Result</h2>
-          <p>${data.message}</p>
-          <img src="/uploads/${data.comparison_image}" alt="Comparison Result">
-        `;
-      } else {
-        resultDiv.innerHTML = `<p class="error">Error: ${data.error}</p>`;
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      resultDiv.innerHTML = `<p class="error">An error occurred while processing the request: ${error.message}</p>`;
-    }
+        <h2>Comparison Result</h2>
+        <p>${data.message}</p>
+        <img src="/uploads/${data.comparison_image}" alt="Comparison Image">
+      `;
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   });
 });

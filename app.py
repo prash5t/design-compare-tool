@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 import os
 from PIL import Image
@@ -69,6 +69,11 @@ def upload_files():
     })
 
 
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
 def compare_images(figma_path, built_path):
     # Read images
     figma_img = cv2.imread(figma_path)
@@ -111,14 +116,15 @@ def compare_images(figma_path, built_path):
     comparison = np.hstack((figma_img, built_img, filled_after))
 
     # Save the comparison image
+    comparison_filename = f'comparison_{os.path.basename(figma_path)}_{os.path.basename(built_path)}.jpg'
     comparison_path = os.path.join(
-        app.config['UPLOAD_FOLDER'], 'comparison.jpg')
+        app.config['UPLOAD_FOLDER'], comparison_filename)
     cv2.imwrite(comparison_path, comparison)
 
     return {
         'similarity': score * 100,
         'message': f'The images are {score * 100:.2f}% similar based on structural similarity.',
-        'comparison_image': 'comparison.jpg'
+        'comparison_image': comparison_filename
     }
 
 

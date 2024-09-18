@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 import os
-from PIL import Image
+import json
 import cv2
 import numpy as np
 from skimage.metrics import structural_similarity as ssim
@@ -14,6 +14,7 @@ CORS(app)  # Add this line to enable CORS
 
 # Configuration
 app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max-limit
 
 
 @app.route('/')
@@ -68,6 +69,43 @@ def upload_files():
 
     except Exception as e:
         print("Error occurred:", str(e))
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/bulk_upload', methods=['POST'])
+def bulk_upload_files():
+    try:
+        if 'screens' not in request.form:
+            return jsonify({'error': 'Missing screens data'}), 400
+
+        screens = json.loads(request.form['screens'])
+        results = []
+
+        for screen in screens:
+            figma_image = request.files.get(screen['figma_screenshot'])
+            app_image = request.files.get(screen['app_screenshot'])
+
+            if not figma_image or not app_image:
+                return jsonify({'error': f"Missing image for screen {screen['name']}"}), 400
+
+            figma_filename = secure_filename(f"{screen['name']}_figma.png")
+            app_filename = secure_filename(f"{screen['name']}_app.png")
+
+            figma_path = os.path.join(
+                app.config['UPLOAD_FOLDER'], figma_filename)
+            app_path = os.path.join(app.config['UPLOAD_FOLDER'], app_filename)
+
+            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+            figma_image.save(figma_path)
+            app_image.save(app_path)
+
+            comparison_result = compare_images(figma_path, app_path)
+            comparison_result['screen_name'] = screen['name']
+            results.append(comparison_result)
+
+        return jsonify(results)
+
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 

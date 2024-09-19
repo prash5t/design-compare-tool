@@ -25,17 +25,22 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_files():
     try:
+        if 'session_id' not in request.form:
+            return jsonify({'error': 'Missing session ID'}), 400
+
+        session_id = request.form['session_id']
+        single_comparison_dir = os.path.join(
+            app.config['UPLOAD_FOLDER'], 'single_comparisons', session_id)
+        os.makedirs(single_comparison_dir, exist_ok=True)
+
         print("Request method:", request.method)
         print("Content-Type:", request.content_type)
         print("Files received:", request.files)
         print("Form data:", request.form)
 
         if 'figma_image' not in request.files or 'built_image' not in request.files:
-            missing = []
-            if 'figma_image' not in request.files:
-                missing.append('figma_image')
-            if 'built_image' not in request.files:
-                missing.append('built_image')
+            missing = [f for f in ['figma_image', 'built_image']
+                       if f not in request.files]
             return jsonify({'error': f'Missing files: {", ".join(missing)}'}), 400
 
         figma_image = request.files['figma_image']
@@ -45,25 +50,23 @@ def upload_files():
         print("Built image:", built_image.filename)
 
         if figma_image.filename == '' or built_image.filename == '':
-            empty = []
-            if figma_image.filename == '':
-                empty.append('figma_image')
-            if built_image.filename == '':
-                empty.append('built_image')
+            empty = [f for f in ['figma_image', 'built_image']
+                     if request.files[f].filename == '']
             return jsonify({'error': f'Empty filenames: {", ".join(empty)}'}), 400
 
         figma_filename = secure_filename(figma_image.filename)
         built_filename = secure_filename(built_image.filename)
 
-        figma_path = os.path.join(app.config['UPLOAD_FOLDER'], figma_filename)
-        built_path = os.path.join(app.config['UPLOAD_FOLDER'], built_filename)
-
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        figma_path = os.path.join(single_comparison_dir, figma_filename)
+        built_path = os.path.join(single_comparison_dir, built_filename)
 
         figma_image.save(figma_path)
         built_image.save(built_path)
 
-        comparison_result = compare_images(figma_path, built_path)
+        comparison_result = compare_images(
+            figma_path, built_path, single_comparison_dir)
+
+        comparison_result['session_id'] = session_id
 
         return jsonify(comparison_result)
 
@@ -79,6 +82,11 @@ def bulk_upload_files():
             return jsonify({'error': 'Missing screens data'}), 400
 
         screens = json.loads(request.form['screens'])
+        now = datetime.now()
+        bulk_comparison_dir = os.path.join(
+            app.config['UPLOAD_FOLDER'], 'bulk_comparisons', now.strftime("%Y%m%d_%H%M%S"))
+        os.makedirs(bulk_comparison_dir, exist_ok=True)
+
         results = []
 
         for screen in screens:
@@ -91,15 +99,14 @@ def bulk_upload_files():
             figma_filename = secure_filename(f"{screen['name']}_figma.png")
             app_filename = secure_filename(f"{screen['name']}_app.png")
 
-            figma_path = os.path.join(
-                app.config['UPLOAD_FOLDER'], figma_filename)
-            app_path = os.path.join(app.config['UPLOAD_FOLDER'], app_filename)
+            figma_path = os.path.join(bulk_comparison_dir, figma_filename)
+            app_path = os.path.join(bulk_comparison_dir, app_filename)
 
-            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
             figma_image.save(figma_path)
             app_image.save(app_path)
 
-            comparison_result = compare_images(figma_path, app_path)
+            comparison_result = compare_images(
+                figma_path, app_path, bulk_comparison_dir)
             comparison_result['screen_name'] = screen['name']
             results.append(comparison_result)
 
@@ -109,12 +116,12 @@ def bulk_upload_files():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/uploads/<filename>')
+@app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
-def compare_images(figma_path, built_path):
+def compare_images(figma_path, built_path, output_dir):
     # Read images
     figma_img = cv2.imread(figma_path)
     built_img = cv2.imread(built_path)
@@ -166,17 +173,15 @@ def compare_images(figma_path, built_path):
     # Create the comparison image
     comparison = np.hstack((figma_img, built_img, filled_after))
 
-    # Generate a unique filename for the comparison image using datetime
-    now = datetime.now()
-    comparison_filename = f'comparison_{now.strftime("%Y%m%d_%H%M%S")}.jpg'
-    comparison_path = os.path.join(
-        app.config['UPLOAD_FOLDER'], comparison_filename)
+    # Update the comparison image path
+    comparison_filename = f'comparison_{datetime.now().strftime("%Y%m%d_%H%M%S")}.jpg'
+    comparison_path = os.path.join(output_dir, comparison_filename)
     cv2.imwrite(comparison_path, comparison)
 
     return {
         'similarity': f'{score * 100:.2f}',
         'message': f'The images are {score * 100:.2f}% similar based on structural similarity.',
-        'comparison_image': comparison_filename
+        'comparison_image': os.path.relpath(comparison_path, app.config['UPLOAD_FOLDER'])
     }
 
 

@@ -7,6 +7,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const builtInput = document.getElementById("built-image");
   const compareBtn = document.getElementById("compare-btn");
 
+  // Generate a unique session ID
+  const sessionId = generateSessionId();
+
   function handleDragOver(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -79,6 +82,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     var formData = new FormData();
 
+    // Add session ID to form data
+    formData.append("session_id", sessionId);
+
     // Ensure files are added to FormData
     if (figmaInput.files.length > 0) {
       formData.append("figma_image", figmaInput.files[0]);
@@ -118,3 +124,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
 });
+
+// Function to generate a unique session ID
+function generateSessionId() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    var r = (Math.random() * 16) | 0,
+      v = c == "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
